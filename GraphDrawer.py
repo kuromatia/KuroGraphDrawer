@@ -64,6 +64,8 @@ class GraphDrawer:
         plt.ylim(0, cnt+0.2)
         plt.show()
 
+    def draw_rt_graph(self):
+        pass
 
     def main(self):
         self.draw_xrd_graph()
