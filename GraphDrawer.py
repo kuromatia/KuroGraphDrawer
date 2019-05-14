@@ -47,6 +47,7 @@ class GraphDrawer:
         return([x, y])
 
     def draw_xrd_graph(self):
+        color_list = ["black", "red", "blue"]
         cnt = 0
         for file_name in self.file_list:
             data = self.read_file(file_name)
@@ -54,7 +55,7 @@ class GraphDrawer:
             x = xy[0]
             y = xy[1]
             y = list(map(lambda i: i+cnt, y))
-            plt.plot(x, y, color="black")
+            plt.plot(x, y, color=color_list[cnt])
             cnt += 1
 
         plt.xlabel(r"2$\theta$ / deg. (Cu-$K_\alpha$)")
