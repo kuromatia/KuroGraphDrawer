@@ -64,6 +64,9 @@ class GraphDrawer:
         plt.ylim(0, cnt+0.2)
         plt.show()
 
+    def preprocess_rt(self):
+        pass
+
     def draw_rt_graph(self):
         pass
 
