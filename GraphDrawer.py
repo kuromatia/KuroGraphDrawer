@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# coding: utf-8
+
 import sys
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -5,7 +8,12 @@ from matplotlib import pyplot as plt
 class GraphDrawer:
     def __init__(self):
         self.graph_type = ""
+        self.split = ""
         self.file_list = []
+        self.a = -1.0
+        self.b = -1.0
+        self.l = -1.0
+        self.color_list = ["black", "red", "blue"]
 
         plt.rcParams['font.size'] = 18
         plt.rcParams['font.family']= 'sans-serif'
@@ -26,8 +34,10 @@ class GraphDrawer:
         parser = ArgumentParser()
         parser.add_argument('-i', '--input', nargs="*")
         parser.add_argument('-g', '--graph_type')
+        parser.add_argument('-s', '--split')
         args = parser.parse_args()
 
+        self.split = args.split
         self.graph_type = args.graph_type
         self.file_list = args.input
 
@@ -48,7 +58,6 @@ class GraphDrawer:
 
 
     def draw_xrd_graph(self):
-        color_list = ["black", "red", "blue"]
         cnt = 0
         for file_name in self.file_list:
             data = self.read_file(file_name)
@@ -56,7 +65,7 @@ class GraphDrawer:
             x = xy[0]
             y = xy[1]
             y = list(map(lambda i: i+cnt, y))
-            plt.plot(x, y, color=color_list[cnt])
+            plt.plot(x, y, color=self.color_list[cnt])
             cnt += 1
 
         plt.tick_params(bottom=True,
@@ -86,15 +95,15 @@ class GraphDrawer:
         y /= -y[index_20K]
         return([x, y])
 
+
     def draw_mt_graph(self):
         data = pd.read_csv(self.file_list[0], header=20)
         xy = self.preprocess_mt(data)
         cnt = 0
-        color_list = ["black", "red", "blue"]
         for file_name in self.file_list:
             data = pd.read_csv(file_name, header=20)
             xy = self.preprocess_mt(data)
-            plt.plot(xy[0][::3], xy[1][::3], marker="o", ms=10, color=color_list[cnt])
+            plt.plot(xy[0][::3], xy[1][::3], marker="o", ms=10, color=self.color_list[cnt])
             cnt =+ 1
         plt.xlabel(r"$\it{T}$ / K")
         plt.ylabel(r"- $\it{M}$ / $\it{M}$ (20 K , ZFC)")
@@ -103,21 +112,57 @@ class GraphDrawer:
         plt.tight_layout()
         plt.show()
 
-
-    def preprocess_rt(self):
-        pass
+    def preprocess_rt(self, data):
+        x = data.iloc[:,1]
+        y = data.iloc[:,2]
+        y = y * 100 * self.l / (self.a * self.b)
+        return([x, y])
 
 
     def draw_rt_graph(self):
-        pass
+        cnt = 0
+        for file_name in self.file_list:
+            with open(file_name, 'r') as f:
+                value = f.read().split("\n")
+            self.a = float(value[0])
+            self.b = float(value[1])
+            self.l = float(value[2])
+            data = pd.read_csv(file_name, header=3)
+            xy = self.preprocess_rt(data)
+            plt.plot(xy[0][::4], xy[1][::4], marker="o", linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label="sample")
+            cnt += 1
+        plt.legend(loc=4, frameon=True, facecolor='white', edgecolor='black',fontsize=14)
+        plt.xlabel(r"$\it{T}$ / K")
+        plt.ylabel(r"$\it{\rho}$ / m$\Omega$cm")
+        plt.xlim(0, 300)
+        plt.ylim(0, )
+        plt.tight_layout()
+        plt.show()
+
+
+    def split_data_rt(self):
+        data = pd.read_csv(self.file_list[0], header=25)
+        ch1 = data[["Temperature (K)", "Res. ch1 (ohm-cm)"]]
+        ch2 = data[["Temperature (K)", "Res. ch2 (ohm-cm)"]]
+        ch1 = ch1.dropna(how="any")
+        ch2 = ch2.dropna(how="any")
+        ch1.to_csv("ch1_" + self.file_list[0])
+        ch2.to_csv("ch2_" + self.file_list[0])
 
 
     def main(self):
         self.get_args()
+        if (self.split == "rt"):
+            self.split_data_rt()
+            print("splited in ch1 and ch2")
+            return(0)
+
         print(self.graph_type)
         if (self.graph_type == "mt"):
             self.draw_mt_graph()
-        else:
+        elif (self.graph_type == "rt"):
+            self.draw_rt_graph()
+        elif (self.graph_type == "xrd"):
             self.draw_xrd_graph()
 
 
