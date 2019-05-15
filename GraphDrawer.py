@@ -1,12 +1,11 @@
-#! /usr/bin/env python
-# coding: utf-8
 import sys
 import pandas as pd
 from matplotlib import pyplot as plt
 
 class GraphDrawer:
-    def __init__(self, file_list):
-        self.file_list = file_list[1:]
+    def __init__(self):
+        self.graph_type = ""
+        self.file_list = []
 
         plt.rcParams['font.size'] = 18
         plt.rcParams['font.family']= 'sans-serif'
@@ -18,19 +17,20 @@ class GraphDrawer:
         plt.rcParams['axes.linewidth'] = 2 # 枠
         plt.rcParams['axes.grid']=True
         plt.rcParams['grid.linestyle']='--'
-        plt.rcParams['grid.linewidth'] = 0.3
-
+        plt.rcParams['grid.linewidth'] = 0.5
         plt.figure(figsize=(7, 7))
+        plt.tick_params(length=7, pad=7)
 
-        plt.tick_params(bottom=True,
-                        left=False,
-                        right=False,
-                        top=True)
+    def get_args(self):
+        from argparse import ArgumentParser
+        parser = ArgumentParser()
+        parser.add_argument('-i', '--input', nargs="*")
+        parser.add_argument('-g', '--graph_type')
+        args = parser.parse_args()
 
-        plt.tick_params(labelbottom=True,
-                        labelleft=False,
-                        labelright=False,
-                        labeltop=False)
+        self.graph_type = args.graph_type
+        self.file_list = args.input
+
 
     def read_file(self, file_name):
         import codecs
@@ -46,6 +46,7 @@ class GraphDrawer:
         y /= y.max()
         return([x, y])
 
+
     def draw_xrd_graph(self):
         color_list = ["black", "red", "blue"]
         cnt = 0
@@ -58,21 +59,67 @@ class GraphDrawer:
             plt.plot(x, y, color=color_list[cnt])
             cnt += 1
 
+        plt.tick_params(bottom=True,
+                        left=False,
+                        right=False,
+                        top=True)
+
+        plt.tick_params(labelbottom=True,
+                        labelleft=False,
+                        labelright=False,
+                        labeltop=False)
+
         plt.xlabel(r"2$\theta$ / deg. (Cu-$K_\alpha$)")
         plt.ylabel("intensity (normalized)")
         plt.xlim(5, 35)
         plt.ylim(0, cnt+0.2)
         plt.show()
 
+    def preprocess_mt(self, data):
+        x = data["Temperature (K)"]
+        y = data["Long Moment (emu)"]
+
+        # get index of approximately 20 K
+        T20 = x[x>20]
+        index_20K = T20.index[0]
+
+        y /= -y[index_20K]
+        return([x, y])
+
+    def draw_mt_graph(self):
+        data = pd.read_csv(self.file_list[0], header=20)
+        xy = self.preprocess_mt(data)
+        cnt = 0
+        color_list = ["black", "red", "blue"]
+        for file_name in self.file_list:
+            data = pd.read_csv(file_name, header=20)
+            xy = self.preprocess_mt(data)
+            plt.plot(xy[0][::3], xy[1][::3], marker="o", ms=10, color=color_list[cnt])
+            cnt =+ 1
+        plt.xlabel(r"$\it{T}$ / K")
+        plt.ylabel(r"- $\it{M}$ / $\it{M}$ (20 K , ZFC)")
+        plt.xlim(20, 100)
+        plt.ylim(-1, )
+        plt.tight_layout()
+        plt.show()
+
+
     def preprocess_rt(self):
-        """test"""
         pass
+
 
     def draw_rt_graph(self):
         pass
 
+
     def main(self):
-        self.draw_xrd_graph()
+        self.get_args()
+        print(self.graph_type)
+        if (self.graph_type == "mt"):
+            self.draw_mt_graph()
+        else:
+            self.draw_xrd_graph()
+
 
 if __name__ == "__main__":
-    GraphDrawer(sys.argv).main()
+    GraphDrawer().main()
