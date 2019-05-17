@@ -10,9 +10,6 @@ class GraphDrawer:
         self.graph_type = ""
         self.split = ""
         self.file_list = []
-        self.a = -1.0
-        self.b = -1.0
-        self.l = -1.0
         self.color_list = ["black", "red", "blue"]
         self.output_name = ""
 
@@ -45,6 +42,9 @@ class GraphDrawer:
 
 
     def rt_setting(self):
+        self.a = -1.0
+        self.b = -1.0
+        self.l = -1.0
         self.lower_limit = 0
         self.upper_limit = 300
         self.ticks_per = 10
