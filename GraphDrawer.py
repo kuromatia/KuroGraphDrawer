@@ -14,6 +14,7 @@ class GraphDrawer:
         self.b = -1.0
         self.l = -1.0
         self.color_list = ["black", "red", "blue"]
+        self.output_name = ""
 
         plt.rcParams['font.size'] = 18
         plt.rcParams['font.family']= 'sans-serif'
@@ -27,7 +28,29 @@ class GraphDrawer:
         plt.rcParams['grid.linestyle']='--'
         plt.rcParams['grid.linewidth'] = 0.5
         plt.figure(figsize=(7, 7))
-        plt.tick_params(length=7, pad=7)
+        plt.tick_params(length=5, pad=7)
+
+    def xrd_setting(self):
+        self.lower_limit = 5
+        self.upper_limit = 55
+        self.ticks_per = 5
+        self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
+
+    def mt_setting(self):
+        self.lower_limit = 40
+        self.upper_limit = 100
+        self.ticks_per = 10
+        self.slice = 3
+        self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
+
+
+    def rt_setting(self):
+        self.lower_limit = 0
+        self.upper_limit = 300
+        self.ticks_per = 10
+        self.slice  = 4
+        self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
+
 
     def get_args(self):
         from argparse import ArgumentParser
@@ -35,11 +58,13 @@ class GraphDrawer:
         parser.add_argument('-i', '--input', nargs="*")
         parser.add_argument('-g', '--graph_type')
         parser.add_argument('-s', '--split')
+        parser.add_argument('-o', '--output')
         args = parser.parse_args()
 
         self.split = args.split
         self.graph_type = args.graph_type
         self.file_list = args.input
+        self.output_name = args.output
 
 
     def read_file(self, file_name):
@@ -58,6 +83,7 @@ class GraphDrawer:
 
 
     def draw_xrd_graph(self):
+        self.xrd_setting()
         cnt = 0
         for file_name in self.file_list:
             data = self.read_file(file_name)
@@ -80,9 +106,9 @@ class GraphDrawer:
 
         plt.xlabel(r"2$\theta$ / deg. (Cu-$K_\alpha$)")
         plt.ylabel("intensity (normalized)")
-        plt.xlim(5, 35)
+        plt.xlim(self.lower_limit, self.upper_limit)
         plt.ylim(0, cnt+0.2)
-        plt.show()
+        plt.xticks(self.tick_range)
 
     def preprocess_mt(self, data):
         x = data["Temperature (K)"]
@@ -97,20 +123,18 @@ class GraphDrawer:
 
 
     def draw_mt_graph(self):
-        data = pd.read_csv(self.file_list[0], header=20)
-        xy = self.preprocess_mt(data)
+        self.mt_setting()
         cnt = 0
         for file_name in self.file_list:
             data = pd.read_csv(file_name, header=20)
             xy = self.preprocess_mt(data)
-            plt.plot(xy[0][::3], xy[1][::3], marker="o", ms=10, color=self.color_list[cnt])
+            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker="o", ms=10, color=self.color_list[cnt])
             cnt =+ 1
         plt.xlabel(r"$\it{T}$ / K")
         plt.ylabel(r"- $\it{M}$ / $\it{M}$ (20 K , ZFC)")
-        plt.xlim(20, 100)
+        plt.xlim(self.lower_limit, self.upper_limit)
         plt.ylim(-1, )
         plt.tight_layout()
-        plt.show()
 
     def preprocess_rt(self, data):
         x = data.iloc[:,1]
@@ -120,6 +144,7 @@ class GraphDrawer:
 
 
     def draw_rt_graph(self):
+        self.rt_setting()
         cnt = 0
         for file_name in self.file_list:
             with open(file_name, 'r') as f:
@@ -129,15 +154,14 @@ class GraphDrawer:
             self.l = float(value[2])
             data = pd.read_csv(file_name, header=3)
             xy = self.preprocess_rt(data)
-            plt.plot(xy[0][::4], xy[1][::4], marker="o", linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label="sample")
+            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker="o", linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label="sample")
             cnt += 1
         plt.legend(loc=4, frameon=True, facecolor='white', edgecolor='black',fontsize=14)
         plt.xlabel(r"$\it{T}$ / K")
         plt.ylabel(r"$\it{\rho}$ / m$\Omega$cm")
-        plt.xlim(0, 300)
+        plt.xlim(self.lower_limit, self.upper_limit)
         plt.ylim(0, )
         plt.tight_layout()
-        plt.show()
 
 
     def split_data_rt(self):
@@ -148,6 +172,11 @@ class GraphDrawer:
         ch2 = ch2.dropna(how="any")
         ch1.to_csv("ch1_" + self.file_list[0])
         ch2.to_csv("ch2_" + self.file_list[0])
+
+    def save_and_show(self):
+        if self.output_name:
+            plt.savefig(self.output_name, transparent=True, dpi=300)
+        plt.show()
 
 
     def main(self):
@@ -165,6 +194,7 @@ class GraphDrawer:
         elif (self.graph_type == "xrd"):
             self.draw_xrd_graph()
 
+        self.save_and_show()
 
 if __name__ == "__main__":
     GraphDrawer().main()
