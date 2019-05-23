@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # coding: utf-8
 
+import re
 import sys
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -173,10 +174,16 @@ class GraphDrawer:
         ch1.to_csv("ch1_" + self.file_list[0])
         ch2.to_csv("ch2_" + self.file_list[0])
 
+
     def save_and_show(self):
         if self.output_name:
             plt.savefig(self.output_name, transparent=True, dpi=300)
         plt.show()
+
+    def read_ini(self, file_name="input.ini"):
+        with open(file_name, "r") as f:
+            self.file_list = f.read().split("\n")
+        return(self.file_list)
 
 
     def main(self):
@@ -186,7 +193,18 @@ class GraphDrawer:
             print("splited in ch1 and ch2")
             return(0)
 
+        if (re.search(".*\.ini", self.file_list[0])):
+            try:
+                self.read_ini(self.file_list[0])
+            except:
+                print("file not found.")
+                return(0)
+
+        self.file_list.remove("")
+
+        print(self.file_list)
         print(self.graph_type)
+
         if (self.graph_type == "mt"):
             self.draw_mt_graph()
         elif (self.graph_type == "rt"):

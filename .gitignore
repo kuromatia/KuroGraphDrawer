@@ -2,4 +2,6 @@
 *.txt
 *.png
 *.dat
+*.ini
 .DS_Store
+*pyc
