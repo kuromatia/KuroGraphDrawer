@@ -6,12 +6,14 @@ import sys
 import pandas as pd
 from matplotlib import pyplot as plt
 
+
 class GraphDrawer:
     def __init__(self):
         self.graph_type = ""
         self.split = ""
         self.file_list = []
-        self.color_list = ["black", "red", "blue"]
+        self.marker = ["o", '^', "s", "v", "<", ">"]
+        self.color_list = ["black", "red", "green", "blue", "purple", "Magenta"]
         self.output_name = ""
 
         plt.rcParams['font.size'] = 18
@@ -22,7 +24,7 @@ class GraphDrawer:
         plt.rcParams['xtick.major.width'] = 1.5 # 目盛
         plt.rcParams['ytick.major.width'] = 1.5 # 目盛
         plt.rcParams['axes.linewidth'] = 2 # 枠
-        plt.rcParams['axes.grid']=True
+        # plt.rcParams['axes.grid']=True
         plt.rcParams['grid.linestyle']='--'
         plt.rcParams['grid.linewidth'] = 0.5
         plt.figure(figsize=(7, 7))
@@ -30,12 +32,14 @@ class GraphDrawer:
 
     def xrd_setting(self):
         self.lower_limit = 5
-        self.upper_limit = 55
+        self.upper_limit = 35
         self.ticks_per = 5
         self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
 
+
     def mt_setting(self):
-        self.lower_limit = 40
+        # plt.rcParams['axes.grid.axis'] = 'both'
+        self.lower_limit = 20
         self.upper_limit = 100
         self.ticks_per = 10
         self.slice = 3
@@ -49,7 +53,7 @@ class GraphDrawer:
         self.lower_limit = 0
         self.upper_limit = 300
         self.ticks_per = 10
-        self.slice  = 4
+        self.slice  = 1
         self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
 
 
@@ -108,7 +112,8 @@ class GraphDrawer:
         plt.xlabel(r"2$\theta$ / deg. (Cu-$K_\alpha$)")
         plt.ylabel("intensity (normalized)")
         plt.xlim(self.lower_limit, self.upper_limit)
-        plt.ylim(0, cnt+0.2)
+        plt.ylim(0, cnt+1.0)
+        plt.grid(axis='x')
         plt.xticks(self.tick_range)
 
     def preprocess_mt(self, data):
@@ -129,13 +134,21 @@ class GraphDrawer:
         for file_name in self.file_list:
             data = pd.read_csv(file_name, header=20)
             xy = self.preprocess_mt(data)
-            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker="o", ms=10, color=self.color_list[cnt])
-            cnt =+ 1
+            # plt.plot(xy[0], xy[1], marker=self.marker[cnt], ms=10, color=self.color_list[cnt], markeredgewidth=1, markeredgecolor="black", label=" ")
+            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker=self.marker[cnt], ms=10, color=self.color_list[cnt], markeredgewidth=1, markeredgecolor="black", label=" ")
+            cnt += 1
+
+        plt.tick_params(bottom=True,
+                        left=True,
+                        right=True,
+                        top=True)
         plt.xlabel(r"$\it{T}$ / K")
         plt.ylabel(r"- $\it{M}$ / $\it{M}$ (20 K , ZFC)")
         plt.xlim(self.lower_limit, self.upper_limit)
-        plt.ylim(-1, )
+        plt.ylim(-1, 0.2)
+        plt.legend(frameon=False, loc='upper left')
         plt.tight_layout()
+
 
     def preprocess_rt(self, data):
         x = data.iloc[:,1]
@@ -155,7 +168,7 @@ class GraphDrawer:
             self.l = float(value[2])
             data = pd.read_csv(file_name, header=3)
             xy = self.preprocess_rt(data)
-            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker="o", linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label="sample")
+            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker=self.marker[cnt], linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label="sample")
             cnt += 1
         plt.legend(loc=4, frameon=True, facecolor='white', edgecolor='black',fontsize=14)
         plt.xlabel(r"$\it{T}$ / K")
@@ -179,6 +192,7 @@ class GraphDrawer:
         if self.output_name:
             plt.savefig(self.output_name, transparent=True, dpi=300)
         plt.show()
+
 
     def read_ini(self, file_name="input.ini"):
         with open(file_name, "r") as f:
