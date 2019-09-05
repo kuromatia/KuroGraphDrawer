@@ -90,6 +90,9 @@ class XrdDrawer:
         y /= y.max()
         return([x, y])
 
+    def preprocess_xrd2(self, data):
+        pass
+
     def reference(self):
         self.pat_list = []
         for ref_file in self.ref:
@@ -163,18 +166,18 @@ class XrdDrawer:
                 print("file not found.")
                 return(0)
 
-        self.file_list.remove("")
-        print(self.file_list)
-        print(self.ref)
-        if (re.search(".*\.ini", self.ref)):
-            try:
-                self.read_ini2(self.ref)
-            except:
-                print("file not found.")
-                return(0)
-        self.ref.remove("")
-        print(self.ref)
-        self.reference()
+        # self.file_list.remove("")
+        # print(self.file_list)
+        # print(self.ref)
+        # if (re.search(".*\.ini", self.ref)):
+        #     try:
+        #         self.read_ini2(self.ref)
+        #     except:
+        #         print("file not found.")
+        #         return(0)
+        # self.ref.remove("")
+        # print(self.ref)
+        # self.reference()
         # for i in self.pat["2theta [deg.]"]:
 
         self.draw_xrd_graph()

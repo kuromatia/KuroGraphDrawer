@@ -15,11 +15,16 @@ class GraphAnalyzer(GraphDrawer):
         print('\n')
         print("========result========")
         print('\n')
+
         for file_name in self.file_list:
             data = pd.read_csv(file_name, header=20)
             xy = self.preprocess_mt(data)
+            print(xy)
             data = pd.concat([xy[0], xy[1]], axis=1)
+
+
             data["diff"] = data["Long Moment (emu)"].diff()
+
             diff_max = data[data["diff"] == data["diff"].max()]
             Tc_diff = float(diff_max["Temperature (K)"])
 
@@ -32,9 +37,12 @@ class GraphAnalyzer(GraphDrawer):
             print("Tc_diff", Tc_diff)
             print('\n')
         print("========end========")
-            # self.analyzer()
+
 
     def analyzer(self):
+        """
+        using GaussianProcessRegressor
+        """
         memo = [['x', "Tc_diamag", "Tc_diff"]]
         var_x = ["0", "0.02", "0.03", "0.05", "0.07", "0.10"]
         var_x = ["x"]*20
@@ -77,31 +85,7 @@ class GraphAnalyzer(GraphDrawer):
         print("========end========")
         print(memo)
 
-        # import csv
-        # with open("a.csv", "w") as f:
-        #     writer = csv.writer(f, lineterminator="\n")
-        #     writer.writerows(memo)
-            # plt.scatter(x, y, c="red")
-            # plt.plot(x2, self.gp.predict(x2))
-            # plt.fill_between(x2[:, 0], (pred_mean + pred_std)[:, 0], (pred_mean - pred_std)[:, 0], color="C0", alpha=.3,label= "1 sigma confidence")
-            # plt.show()
 
-
-
-    def main(self):
-        self.get_args()
-        if (re.search(".*\.ini", self.file_list[0])):
-            try:
-                self.read_ini(self.file_list[0])
-            except:
-                print("file not found.")
-                return(0)
-
-        self.file_list.remove("")
-        print(self.file_list)
-        print(self.graph_type)
-
-        self.read_mt_data()
 
     def main2(self):
         self.get_args()

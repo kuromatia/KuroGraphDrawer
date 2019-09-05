@@ -6,13 +6,14 @@ import sys
 import pandas as pd
 from matplotlib import pyplot as plt
 
-
 class GraphDrawer:
     def __init__(self):
         self.graph_type = ""
         self.split = ""
         self.file_list = []
-        self.marker = ["o", '^', "s", "v", "<", ">"]
+        self.marker = ["o", '^', "s", "v", "<", ">", "p", "D", "h"]
+        self.marker = ["o", '^', "s", "v", "p", "D", "h"]
+        self.marker = ["o", 'o', "o", "o", "o", "o", "o"]
         self.color_list = ["black", "red", "green", "blue", "purple", "Magenta"]
         self.output_name = ""
 
@@ -30,21 +31,44 @@ class GraphDrawer:
         plt.figure(figsize=(7, 7))
         plt.tick_params(length=5, pad=7)
 
+    # def graph_controller(self):
+    #     plt.tick_params(bottom=True,
+    #                     left=True,
+    #                     right=True,
+    #                     top=True)
+    #     plt.xlabel(r"$\it{T}$ / K")
+    #     plt.ylabel(r"- $\it{M}$ / $\it{M}$ (20 K , ZFC)")
+    #     plt.xlim(self.x_lower_limit, self.x_upper_limit)
+    #     plt.ylim(self.y_lower_limit, self.y_upper_limit)
+    #     plt.xticks(self.tick_range)
+    #     plt.legend(frameon=False, loc='upper left')
+    #     plt.tight_layout()
+
+
     def xrd_setting(self):
         self.lower_limit = 5
-        self.upper_limit = 35
+        self.upper_limit = 45
         self.ticks_per = 5
         self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
 
 
     def mt_setting(self):
         # plt.rcParams['axes.grid.axis'] = 'both'
-        self.lower_limit = 20
-        self.upper_limit = 100
+        # self.x_lower_limit = 65
+        # self.x_upper_limit = 80
+        # self.y_lower_limit = -0.2
+        # self.y_upper_limit = 0.1
+        self.x_lower_limit = 20
+        self.x_upper_limit = 90
+        self.y_lower_limit = -1.0
+        self.y_upper_limit = 0.2
+        # plt.grid(axis='x')
         self.ticks_per = 10
-        self.slice = 3
-        self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
-
+        self.slice =1
+        # self.tick_range = [65, 70, 75, 80]
+        self.tick_range = range(self.x_lower_limit, self.x_upper_limit+1, self.ticks_per)
+        self.label = [r"$\it{x}$ = 0", r"$\it{x}$ = 0.05", r"$\it{x}$ = 0.03", r"$\it{x}$ = 0.05", r"$\it{x}$ = 0.07", r"$\it{x}$ = 0.10"]
+        # self.label = [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "]
 
     def rt_setting(self):
         self.a = -1.0
@@ -53,8 +77,10 @@ class GraphDrawer:
         self.lower_limit = 0
         self.upper_limit = 300
         self.ticks_per = 10
-        self.slice  = 1
+        self.slice  = 5
         self.tick_range = range(self.lower_limit, self.upper_limit+1, self.ticks_per)
+        self.label = [r"$\it{x}$ = 0", r"$\it{x}$ = 0.05", r"$\it{x}$ = 0.03", r"$\it{x}$ = 0.05", r"$\it{x}$ = 0.07", r"$\it{x}$ = 0.10"]
+        # self.label = ["", "Sm", "Nd", " ", " ", " ", " ", " ", " ", " ", " ", " "]
 
 
     def get_args(self):
@@ -109,11 +135,13 @@ class GraphDrawer:
                         labelright=False,
                         labeltop=False)
 
+        # plt.plot([32.660, 32.660], [0, 2], c="red")
+
         plt.xlabel(r"2$\theta$ / deg. (Cu-$K_\alpha$)")
         plt.ylabel("intensity (normalized)")
         plt.xlim(self.lower_limit, self.upper_limit)
-        plt.ylim(0, cnt+1.0)
-        plt.grid(axis='x')
+        plt.ylim(0, cnt+0.2)
+        # plt.grid(axis='x')
         plt.xticks(self.tick_range)
 
     def preprocess_mt(self, data):
@@ -134,26 +162,34 @@ class GraphDrawer:
         for file_name in self.file_list:
             data = pd.read_csv(file_name, header=20)
             xy = self.preprocess_mt(data)
-            # plt.plot(xy[0], xy[1], marker=self.marker[cnt], ms=10, color=self.color_list[cnt], markeredgewidth=1, markeredgecolor="black", label=" ")
-            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker=self.marker[cnt], ms=10, color=self.color_list[cnt], markeredgewidth=1, markeredgecolor="black", label=" ")
+            plt.plot(xy[0][::self.slice],
+                     xy[1][::self.slice],
+                     marker=self.marker[cnt],
+                     ms=12,
+                     color=self.color_list[cnt],
+                     markeredgewidth=1.8,
+                     markeredgecolor="black",
+                     label=self.label[cnt],
+                     )
             cnt += 1
-
         plt.tick_params(bottom=True,
                         left=True,
                         right=True,
                         top=True)
         plt.xlabel(r"$\it{T}$ / K")
         plt.ylabel(r"- $\it{M}$ / $\it{M}$ (20 K , ZFC)")
-        plt.xlim(self.lower_limit, self.upper_limit)
-        plt.ylim(-1, 0.2)
+        plt.xlim(self.x_lower_limit, self.x_upper_limit)
+        plt.ylim(self.y_lower_limit, self.y_upper_limit)
+        plt.xticks(self.tick_range)
         plt.legend(frameon=False, loc='upper left')
         plt.tight_layout()
+
 
 
     def preprocess_rt(self, data):
         x = data.iloc[:,1]
         y = data.iloc[:,2]
-        y = y * 100 * self.l / (self.a * self.b)
+        y = y * 100 * (self.a * self.b) / self.l
         return([x, y])
 
 
@@ -168,17 +204,24 @@ class GraphDrawer:
             self.l = float(value[2])
             data = pd.read_csv(file_name, header=3)
             xy = self.preprocess_rt(data)
-            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker=self.marker[cnt], linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label="sample")
+            plt.plot(xy[0][::self.slice], xy[1][::self.slice], marker=self.marker[cnt], linewidth=3 ,color=self.color_list[cnt], ms=10, markeredgewidth=1, markeredgecolor="black", alpha=1.0, label=self.label[cnt])
             cnt += 1
-        plt.legend(loc=4, frameon=True, facecolor='white', edgecolor='black',fontsize=14)
+        # plt.legend(loc=4, frameon=True, facecolor='white', edgecolor='black',fontsize=14)
+        plt.tick_params(bottom=True,
+                        left=True,
+                        right=True,
+                        top=True)
+        plt.legend(frameon=False, loc='upper left', fontsize=14)
         plt.xlabel(r"$\it{T}$ / K")
         plt.ylabel(r"$\it{\rho}$ / m$\Omega$cm")
         plt.xlim(self.lower_limit, self.upper_limit)
-        plt.ylim(0, )
+        plt.ylim(0, 3)
+        plt.yticks([0, 1, 2, 3])
         plt.tight_layout()
 
 
     def split_data_rt(self):
+        print(self.file_list)
         data = pd.read_csv(self.file_list[0], header=25)
         ch1 = data[["Temperature (K)", "Res. ch1 (ohm-cm)"]]
         ch2 = data[["Temperature (K)", "Res. ch2 (ohm-cm)"]]
@@ -190,7 +233,7 @@ class GraphDrawer:
 
     def save_and_show(self):
         if self.output_name:
-            plt.savefig(self.output_name, transparent=True, dpi=300)
+            plt.savefig(self.output_name, transparent=True, dpi=500)
         plt.show()
 
 
@@ -199,9 +242,41 @@ class GraphDrawer:
             self.file_list = f.read().split("\n")
         return(self.file_list)
 
+    def draw_xrd_graph2(self):
+        self.xrd_setting()
+        cnt = 0
+        for cnt, file_name in enumerate(self.file_list):
+            data = pd.read_csv(file_name, sep='\t', header=None)
+            x = data[0]
+            y = data[1] / data[1].max()
+            y += cnt
+            plt.plot(x, y, self.color_list[cnt+1])
+
+        plt.tick_params(bottom=True,
+                        left=False,
+                        right=False,
+                        top=True)
+
+        plt.tick_params(labelbottom=True,
+                        labelleft=False,
+                        labelright=False,
+                        labeltop=False)
+
+        plt.xlabel(r"2$\theta$ / deg. (Cu-$K_\alpha$)")
+        plt.ylabel("intensity (normalized)")
+        plt.xlim(self.lower_limit, self.upper_limit)
+        plt.ylim(0, cnt+1.5)
+        # plt.grid(axis='x')
+        plt.xticks(self.tick_range)
+
+
 
     def main(self):
         self.get_args()
+        """
+        split:
+        python ../../GraphDrawer.py -s rt -i 20190816ch1Sm24cx01sh43_ch2Gd124cx005sh44.dat
+        """
         if (self.split == "rt"):
             self.split_data_rt()
             print("splited in ch1 and ch2")
@@ -225,6 +300,8 @@ class GraphDrawer:
             self.draw_rt_graph()
         elif (self.graph_type == "xrd"):
             self.draw_xrd_graph()
+        elif (self.graph_type == "xrd2"):
+            self.draw_xrd_graph2()
 
         self.save_and_show()
 

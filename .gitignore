@@ -1,6 +1,7 @@
 *.TXT
 *.txt
 *.png
+*.pdf
 *.dat
 *.ini
 .DS_Store
@@ -9,3 +10,5 @@
 *.lastscan
 *.pptx
 *.csv
+*.xls
+*.xlsx
